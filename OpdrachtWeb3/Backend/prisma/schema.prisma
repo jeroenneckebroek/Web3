@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Groep {
+  id           Int       @id @default(autoincrement())
+  naam         String    @db.VarChar(255)
+  aanmaakdatum DateTime  @default(now()) @db.DateTime(0)
+  geldig       Int       @default(1)
+  studenten    Student[]
+}
+
+model Opdracht {
+  id                Int               @id @default(autoincrement())
+  naam              String            @db.VarChar(512)
+  geldig            Int               @default(1)
+  aanmaakdatum      DateTime          @default(now()) @db.DateTime(0)
+  opdrachtElementen OpdrachtElement[]
+}
+
+model OpdrachtElement {
+  id           Int       @unique @default(autoincrement())
+  naam         String    @db.VarChar(255)
+  beschrijving String    @db.VarChar(4096)
+  minuten      Int       @default(1)
+  geldig       Int       @default(1)
+  aanmaakdatum DateTime  @default(now()) @db.DateTime(0)
+  opdrachtId   Int
+  opdracht     Opdracht  @relation(fields: [opdrachtId], references: [id], onDelete: Cascade)
+  rapporten    Rapport[]
+}
+
+model Rapport {
+  id                Int             @id @default(autoincrement())
+  status            Int             @default(0)
+  extraMinuten      Int             @default(0)
+  aanmaakdatum      DateTime?       @default(now()) @db.DateTime(0)
+  geldig            Int             @default(1)
+  studentId         Int
+  student           Student         @relation(fields: [studentId], references: [id])
+  opdrachtElementId Int
+  opdrachtelement   OpdrachtElement @relation(fields: [opdrachtElementId], references: [id])
+  vragenStudent     VraagStudent[]
+}
+
+model Student {
+  id             Int       @id @default(autoincrement())
+  code           String    @db.VarChar(45)
+  gebruikersNaam String    @db.VarChar(45)
+  familieNaam    String    @db.VarChar(45)
+  voorNaam       String    @db.VarChar(45)
+  sorteerNaam    String    @db.VarChar(90)
+  email          String    @db.VarChar(90)
+  aanmaakDatum   DateTime? @default(now()) @db.DateTime(0)
+  geldig         Int       @default(1)
+  groepId        Int
+  groep          Groep     @relation(fields: [groepId], references: [id])
+  rapporten      Rapport[]
+}
+
+model VraagStudent {
+  id           Int       @id @default(autoincrement())
+  beschrijving String    @db.VarChar(255)
+  aanmaakdatum DateTime? @default(now()) @db.DateTime(0)
+  geldig       Int?      @default(1)
+  rapportId    Int
+  rapport      Rapport   @relation(fields: [rapportId], references: [id])
+}
